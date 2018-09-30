@@ -1,11 +1,8 @@
 extern crate rand;
 
-#[derive(Debug)]
-struct Rating {
-    object: usize,
-    user: usize,
-    weight: f64,
-}
+mod rating;
+
+use rating::Rating;
 
 struct YZLM {
     convergence: f64,
