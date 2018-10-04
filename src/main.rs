@@ -65,14 +65,23 @@ fn calculate_object_reputation(object_reputation: &mut Vec<f64>,
     }
 }
 
-fn calculate_user_reputation(user_reputation: &mut Vec<f64>,
-    user_links: &Vec<usize>, object_reputation: &Vec<f64>,
-    ratings: &Vec<Rating>, exponent: f64, min_divergence: f64) {
-    let mut user_divergence: Vec<f64> = vec![0.0; user_reputation.len()];
+fn calculate_user_divergence(users: usize,
+    object_reputation: &Vec<f64>, ratings: &Vec<Rating>) -> Vec<f64> {
+    let mut user_divergence: Vec<f64> = vec![0.0; users];
     for r in ratings.iter() {
         let aux = r.weight - object_reputation[r.object];
         user_divergence[r.user] += aux * aux;
     }
+
+    user_divergence
+}
+
+fn calculate_user_reputation(user_reputation: &mut Vec<f64>,
+    user_links: &Vec<usize>, object_reputation: &Vec<f64>,
+    ratings: &Vec<Rating>, exponent: f64, min_divergence: f64) {
+    let user_divergence: Vec<f64> =
+        calculate_user_divergence(user_reputation.len(),
+            object_reputation, ratings);
 
     for (u, rep) in user_reputation.iter_mut().enumerate() {
         if user_links[u] > 0 {
