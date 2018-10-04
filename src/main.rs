@@ -14,17 +14,20 @@ impl YZLM {
     fn calculate_reputation(&self,
         iterations: &mut usize, diff: &mut f64,
         object_reputation: &mut Vec<f64>,
-        user_reputation: &mut Vec<f64>, user_links: &Vec<usize>,
+        user_reputation: &mut Vec<f64>,
         reputation_buf: &mut Vec<f64>,
         ratings: &Vec<Rating>) {
         *iterations = 0;
+
+        let user_links: Vec<usize> =
+            calculate_user_links(user_reputation.len(), ratings);
 
         calculate_object_reputation(object_reputation,
             user_reputation, ratings);
 
         loop {
             calculate_user_reputation(user_reputation,
-                user_links, object_reputation, ratings,
+                &user_links, object_reputation, ratings,
                 self.exponent, self.min_divergence);
 
             reputation_buf.clone_from(object_reputation);
@@ -94,14 +97,14 @@ fn calculate_user_reputation(user_reputation: &mut Vec<f64>,
 }
 
 
-fn init_user_links(user_links: &mut Vec<usize>, ratings: &Vec<Rating>) {
-    for l in user_links.iter_mut() {
-        *l = 0;
-    }
+fn calculate_user_links(users: usize, ratings: &Vec<Rating>) -> Vec<usize> {
+    let mut user_links: Vec<usize> = vec![0; users];
 
     for r in ratings.iter() {
         user_links[r.user] += 1;
     }
+
+    user_links
 }
 
 
@@ -127,7 +130,6 @@ fn main() {
     let mut reputation_buf: Vec<f64> = vec![f64::NAN; objects];
 
     let mut user_error: Vec<f64> = vec![f64::NAN; users];
-    let mut user_links: Vec<usize> = vec![0; users];
     let mut user_reputation: Vec<f64> = vec![f64::NAN; users];
 
     let mut ratings: Vec<Rating> = Vec::new();
@@ -163,14 +165,12 @@ fn main() {
 
         println!("[{}] Generated {} ratings", i, ratings.len());
 
-        init_user_links(&mut user_links, &ratings);
-
         let mut iterations: usize = 0;
         let mut diff: f64 = f64::NAN;
 
         yzlm.calculate_reputation(&mut iterations, &mut diff,
             &mut object_reputation,
-            &mut user_reputation, &user_links,
+            &mut user_reputation,
             &mut reputation_buf,
             &ratings);
 
