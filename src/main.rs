@@ -13,14 +13,14 @@ struct YZLM {
 impl YZLM {
     fn calculate_reputation(&self,
         iterations: &mut usize, diff: &mut f64,
-        object_reputation: &mut Vec<f64>, object_weight_sum: &mut Vec<f64>,
+        object_reputation: &mut Vec<f64>,
         user_reputation: &mut Vec<f64>, user_links: &Vec<usize>,
         user_divergence: &mut Vec<f64>, reputation_buf: &mut Vec<f64>,
         ratings: &Vec<Rating>) {
         *iterations = 0;
 
         calculate_object_reputation(object_reputation,
-            object_weight_sum, user_reputation, ratings);
+            user_reputation, ratings);
 
         loop {
             calculate_user_divergence(user_divergence,
@@ -33,7 +33,7 @@ impl YZLM {
             reputation_buf.clone_from(object_reputation);
 
             calculate_object_reputation(object_reputation,
-                object_weight_sum, user_reputation, ratings);
+                user_reputation, ratings);
 
             *diff = 0.0;
 
@@ -49,12 +49,9 @@ impl YZLM {
     }
 }
 
-fn calculate_object_reputation(
-    object_reputation: &mut Vec<f64>, object_weight_sum: &mut Vec<f64>,
+fn calculate_object_reputation(object_reputation: &mut Vec<f64>,
     user_reputation: &Vec<f64>, ratings: &Vec<Rating>) {
-    for w in object_weight_sum.iter_mut() {
-        *w = 0.0;
-    }
+    let mut object_weight_sum: Vec<f64> = vec![0.0; object_reputation.len()];
 
     for rep in object_reputation.iter_mut() {
         *rep = 0.0;
@@ -126,7 +123,6 @@ fn main() {
 
     let mut object_quality: Vec<f64> = vec![f64::NAN; objects];
     let mut object_reputation: Vec<f64> = vec![f64::NAN; objects];
-    let mut object_weight_sum: Vec<f64> = vec![f64::NAN; objects];
 
     let mut reputation_buf: Vec<f64> = vec![f64::NAN; objects];
 
@@ -174,7 +170,7 @@ fn main() {
         let mut diff: f64 = f64::NAN;
 
         yzlm.calculate_reputation(&mut iterations, &mut diff,
-            &mut object_reputation, &mut object_weight_sum,
+            &mut object_reputation,
             &mut user_reputation, &user_links,
             &mut user_divergence, &mut reputation_buf,
             &ratings);
