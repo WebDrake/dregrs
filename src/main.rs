@@ -15,7 +15,7 @@ impl YZLM {
         iterations: &mut usize, diff: &mut f64,
         object_reputation: &mut Vec<f64>,
         user_reputation: &mut Vec<f64>, user_links: &Vec<usize>,
-        user_divergence: &mut Vec<f64>, reputation_buf: &mut Vec<f64>,
+        reputation_buf: &mut Vec<f64>,
         ratings: &Vec<Rating>) {
         *iterations = 0;
 
@@ -23,11 +23,8 @@ impl YZLM {
             user_reputation, ratings);
 
         loop {
-            calculate_user_divergence(user_divergence,
-                object_reputation, ratings);
-
             calculate_user_reputation(user_reputation,
-                user_divergence, user_links,
+                user_links, object_reputation, ratings,
                 self.exponent, self.min_divergence);
 
             reputation_buf.clone_from(object_reputation);
@@ -68,21 +65,15 @@ fn calculate_object_reputation(object_reputation: &mut Vec<f64>,
     }
 }
 
-fn calculate_user_divergence(user_divergence: &mut Vec<f64>,
-    object_reputation: &Vec<f64>, ratings: &Vec<Rating>) {
-    for d in user_divergence.iter_mut() {
-        *d = 0.0;
-    }
-
+fn calculate_user_reputation(user_reputation: &mut Vec<f64>,
+    user_links: &Vec<usize>, object_reputation: &Vec<f64>,
+    ratings: &Vec<Rating>, exponent: f64, min_divergence: f64) {
+    let mut user_divergence: Vec<f64> = vec![0.0; user_reputation.len()];
     for r in ratings.iter() {
         let aux = r.weight - object_reputation[r.object];
         user_divergence[r.user] += aux * aux;
     }
-}
 
-fn calculate_user_reputation(user_reputation: &mut Vec<f64>,
-    user_divergence: &Vec<f64>, user_links: &Vec<usize>,
-    exponent: f64, min_divergence: f64) {
     for (u, rep) in user_reputation.iter_mut().enumerate() {
         if user_links[u] > 0 {
             let base = (user_divergence[u] / user_links[u] as f64) + min_divergence;
@@ -126,7 +117,6 @@ fn main() {
 
     let mut reputation_buf: Vec<f64> = vec![f64::NAN; objects];
 
-    let mut user_divergence: Vec<f64> = vec![f64::NAN; users];
     let mut user_error: Vec<f64> = vec![f64::NAN; users];
     let mut user_links: Vec<usize> = vec![0; users];
     let mut user_reputation: Vec<f64> = vec![f64::NAN; users];
@@ -172,7 +162,7 @@ fn main() {
         yzlm.calculate_reputation(&mut iterations, &mut diff,
             &mut object_reputation,
             &mut user_reputation, &user_links,
-            &mut user_divergence, &mut reputation_buf,
+            &mut reputation_buf,
             &ratings);
 
         println!("Exited in {} iterations with diff = {:e}",
