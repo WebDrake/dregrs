@@ -113,10 +113,13 @@ fn main() {
     use rand::distributions::{Distribution, Uniform};
     use rand::prng::{XorShiftRng};
 
+    use std::env;
     use std::f64;
 
-    let objects: usize = 1000;
-    let users: usize = 1000;
+    let args: Vec<String> = env::args().collect();
+
+    let objects: usize = args[1].parse().unwrap();
+    let users: usize = args[2].parse().unwrap();
 
     let yzlm = YZLM {
         convergence: 1e-24,
